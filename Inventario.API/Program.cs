@@ -27,11 +27,13 @@ namespace Inventario.API
 
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            //if (app.Environment.IsDevelopment())
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Inventario API V1");
+                c.RoutePrefix = "swagger"; // Esto hace que entre directo en /swagger
+            });
 
             app.UseHttpsRedirection();
 
