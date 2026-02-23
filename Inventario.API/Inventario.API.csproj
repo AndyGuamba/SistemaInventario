@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>..\Inventario.Modelos</DockerfileContext>
+    <UserSecretsId>1e2edecf-e76d-4898-a48b-39337e99bb90</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
