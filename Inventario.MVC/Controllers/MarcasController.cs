@@ -26,12 +26,12 @@ namespace Inventario.MVC.Controllers
         public async Task<IActionResult> Index()
         {
             // 2. Filtro de acceso: Si no es admin, lo mandamos al inicio o login
-            if (!EsAdministrador())
+            if (!EsAdministrador()) 
             {
-                return RedirectToAction("Index", "Acceso");
+                return RedirectToAction("Index", "Acceso"); 
             }
 
-            try
+            try 
             {
                 // Llamada a la API de Render: GET /api/Marcas
                 var response = await _httpClient.GetAsync("api/Marcas");
