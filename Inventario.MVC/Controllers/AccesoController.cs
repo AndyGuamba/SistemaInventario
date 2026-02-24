@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System.Text;
 using Inventario.Modelos.Entidades;
 
-
 namespace Inventario.MVC.Controllers
 {
     public class AccesoController : Controller
@@ -34,39 +33,45 @@ namespace Inventario.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Validar(string cedula, string password, int rol)
         {
-            // Creamos el objeto con la cédula como identificador principal
             var loginData = new
             {
-                Cedula = cedula,
+                Cedula = cedula, // Usamos la nueva Llave Primaria
                 Contraseña = password,
                 Rol = rol
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(loginData), Encoding.UTF8, "application/json");
 
-            // Llamamos al método Login de la API que verifica el Hash de BCrypt
-            var response = await _httpClient.PostAsync("api/Usuarios/login", content);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                // Si la API confirma que es válido, guardamos los datos en la SESIÓN
-                HttpContext.Session.SetString("UsuarioCedula", cedula);
-                HttpContext.Session.SetInt32("UsuarioRol", rol);
+                // Llamamos al método Login de la API que verifica el Hash de BCrypt
+                var response = await _httpClient.PostAsync("api/Usuarios/login", content);
 
-                // Redirigimos según el rol (0 = Empleado, 1 = Admin)
-                if (rol == 1)
+                if (response.IsSuccessStatusCode)
                 {
-                    return RedirectToAction("Index", "Marcas");
-                }
-                else
-                {
-                    // Cambié esto a 'Index' de Parabrisas o tu vista de consulta
-                    return RedirectToAction("Index", "Parabrisas");
+                    // Guardamos los datos en la SESIÓN para el Layout
+                    HttpContext.Session.SetString("UsuarioCedula", cedula);
+                    HttpContext.Session.SetInt32("UsuarioRol", rol);
+
+                    // REDIRECCIÓN POR ROL CORREGIDA
+                    if (rol == 1)
+                    {
+                        return RedirectToAction("Index", "Marcas");
+                    }
+                    else
+                    {
+                        // El empleado va directo a su vista de solo lectura
+                        return RedirectToAction("Inventario", "Consultas");
+                    }
                 }
             }
+            catch (Exception)
+            {
+                ViewBag.Error = "No se pudo conectar con el servidor. Intente más tarde.";
+            }
 
-            // Si falla, volvemos al login con un mensaje de error
-            ViewBag.Error = "Cédula o contraseña incorrectos para el rol seleccionado.";
+            // Si falla, volvemos al login con el mensaje correspondiente
+            ViewBag.Error = ViewBag.Error ?? "Cédula o contraseña incorrectos.";
             ViewBag.RolValor = rol;
             ViewBag.RolNombre = (rol == 1) ? "Administrador" : "Empleado";
             return View("Login");

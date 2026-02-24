@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Inventario.Modelos.Entidades;
+﻿using Inventario.Modelos.Entidades;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace Inventario.MVC.Controllers
