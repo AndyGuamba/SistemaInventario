@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Inventario.API.Migrations
 {
     [DbContext(typeof(InventarioApiContext))]
-    [Migration("20260222230640_MigracionInicial")]
-    partial class MigracionInicial
+    [Migration("20260224181405_EstructuraFinalConCedula")]
+    partial class EstructuraFinalConCedula
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,7 +37,7 @@ namespace Inventario.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Autos");
+                    b.ToTable("Marca");
                 });
 
             modelBuilder.Entity("Inventario.Modelos.Entidades.Parabrisa", b =>
@@ -51,9 +51,6 @@ namespace Inventario.API.Migrations
                     b.Property<string>("Anio")
                         .HasColumnType("text");
 
-                    b.Property<int>("CantidadStock")
-                        .HasColumnType("integer");
-
                     b.Property<int>("MarcaId")
                         .HasColumnType("integer");
 
@@ -62,6 +59,9 @@ namespace Inventario.API.Migrations
 
                     b.Property<double>("Precio")
                         .HasColumnType("double precision");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Tipo")
                         .HasColumnType("text");
@@ -78,11 +78,8 @@ namespace Inventario.API.Migrations
 
             modelBuilder.Entity("Inventario.Modelos.Entidades.Usuario", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("Cedula")
+                        .HasColumnType("text");
 
                     b.Property<string>("Contraseña")
                         .HasColumnType("text");
@@ -96,7 +93,7 @@ namespace Inventario.API.Migrations
                     b.Property<int>("Rol")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("Cedula");
 
                     b.ToTable("Usuarios");
                 });

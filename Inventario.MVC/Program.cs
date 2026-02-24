@@ -6,20 +6,28 @@ namespace Inventario.MVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // 1. Configuración de Servicios
             builder.Services.AddControllersWithViews();
-            // 2. EXTRAEMOS LA URL DESDE APPSETTINGS.JSON
-            // Buscamos la sección "ApiSettings:BaseUrl" que creamos antes
-            var apiBaseUrl = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl");
 
+            // Configuración del HttpClient para conectar con la API en Render
+            var apiBaseUrl = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl");
             builder.Services.AddHttpClient("InventarioApi", client =>
             {
                 client.BaseAddress = new Uri(apiBaseUrl);
             });
 
+            // AGREGADO: Configuración de Sesiones para manejar el login
+            builder.Services.AddDistributedMemoryCache(); // Requerido para almacenar sesiones en memoria
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // La sesión expira tras 30 min de inactividad
+                options.Cookie.HttpOnly = true; // Protege la cookie contra ataques XSS
+                options.Cookie.IsEssential = true; // Permite que la cookie funcione aunque el usuario no acepte cookies de rastreo
+            });
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // 2. Configuración del Pipeline de Solicitudes (Middleware)
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -31,11 +39,16 @@ namespace Inventario.MVC
 
             app.UseRouting();
 
+            // AGREGADO: Habilitar el uso de sesiones
+            // Importante: Debe ir DESPUÉS de UseRouting y ANTES de UseAuthorization
+            app.UseSession();
+
             app.UseAuthorization();
 
+            // CORREGIDO: Ruta por defecto para que inicie directamente en el Login
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Acceso}/{action=Index}/{id?}");
 
             app.Run();
         }

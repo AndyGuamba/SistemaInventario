@@ -6,13 +6,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Inventario.API.Migrations
 {
     /// <inheritdoc />
-    public partial class MigracionInicial : Migration
+    public partial class EstructuraFinalConCedula : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Autos",
+                name: "Marca",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -21,15 +21,14 @@ namespace Inventario.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Autos", x => x.Id);
+                    table.PrimaryKey("PK_Marca", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Usuarios",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Cedula = table.Column<string>(type: "text", nullable: false),
                     Nombre = table.Column<string>(type: "text", nullable: true),
                     Correo = table.Column<string>(type: "text", nullable: true),
                     Contraseña = table.Column<string>(type: "text", nullable: true),
@@ -37,7 +36,7 @@ namespace Inventario.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.PrimaryKey("PK_Usuarios", x => x.Cedula);
                 });
 
             migrationBuilder.CreateTable(
@@ -51,16 +50,16 @@ namespace Inventario.API.Migrations
                     Anio = table.Column<string>(type: "text", nullable: true),
                     Tipo = table.Column<string>(type: "text", nullable: true),
                     Precio = table.Column<double>(type: "double precision", nullable: false),
-                    CantidadStock = table.Column<int>(type: "integer", nullable: false),
+                    Stock = table.Column<int>(type: "integer", nullable: false),
                     Ubicación = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Parabrisas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Parabrisas_Autos_MarcaId",
+                        name: "FK_Parabrisas_Marca_MarcaId",
                         column: x => x.MarcaId,
-                        principalTable: "Autos",
+                        principalTable: "Marca",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -81,7 +80,7 @@ namespace Inventario.API.Migrations
                 name: "Usuarios");
 
             migrationBuilder.DropTable(
-                name: "Autos");
+                name: "Marca");
         }
     }
 }

@@ -1,21 +1,36 @@
 ﻿@{
-    int rol = ViewBag.RolValor;
-    ViewData["Title"] = "Login";
+    Layout = "_LayoutLogin";
 }
+
 <div class="row justify-content-center mt-5">
-    <div class="col-md-4 card shadow p-4">
-        <h2 class="text-center @(rol == 1 ? "text-primary" : "text-success")">Iniciar Sesión</h2>
-        <form asp-action="Validar" method="post">
-            <input type="hidden" name="rol" value="@rol" />
-            <div class="mb-3">
-                <label class="form-label">Usuario</label>
-                <input type="text" name="usuario" class="form-control" required />
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white text-center">
+                <h4>Login - @ViewBag.RolNombre</h4>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Contraseña</label>
-                <input type="password" name="password" class="form-control" required />
+            <div class="card-body">
+                <form asp-action="Validar" method="post">
+                    <input type="hidden" name="rol" value="@ViewBag.RolValor" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Número de Cédula</label>
+                        <input type="text" name="cedula" class="form-control" required placeholder="Ej: 1752790475" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" name="password" class="form-control" required placeholder="********" />
+                    </div>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">@ViewBag.Error</div>
+                    }
+
+                    <button type="submit" class="btn btn-dark w-100">Entrar al Sistema</button>
+                    <a asp-action="Index" class="btn btn-link w-100 mt-2">Volver atrás</a>
+                </form>
             </div>
-            <button type="submit" class="btn @(rol == 1 ? "btn-primary" : "btn-success") w-100">Entrar</button>
-        </form>
+        </div>
     </div>
 </div>
