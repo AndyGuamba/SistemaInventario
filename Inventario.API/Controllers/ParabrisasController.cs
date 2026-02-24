@@ -1,108 +1,120 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Inventario.API.Data;
+using Inventario.Modelos.Entidades;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Inventario.API.Data;
-using Inventario.Modelos.Entidades;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Inventario.API.Controllers
+namespace Inventario.MVC.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ParabrisasController : ControllerBase
+    public class ParabrisasController : Controller
     {
-        private readonly InventarioApiContext _context;
+        private readonly HttpClient _httpClient;
 
-        public ParabrisasController(InventarioApiContext context)
+        public ParabrisasController(IHttpClientFactory httpClientFactory)
         {
-            _context = context;
+            // Usamos el cliente configurado para conectar con la API en Render
+            _httpClient = httpClientFactory.CreateClient("InventarioApi");
         }
 
-        // GET: api/Parabrisas
+        // GET: Parabrisas
+        // Muestra el catálogo completo consumiendo la API
+        public async Task<IActionResult> Index()
+        {
+            var response = await _httpClient.GetAsync("api/Parabrisas");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var lista = JsonConvert.DeserializeObject<IEnumerable<Parabrisa>>(content);
+                return View(lista);
+            }
+            return View(new List<Parabrisa>());
+        }
+
+        // GET: Parabrisas/Crear
+        // Carga la lista de marcas para el DropDownList antes de mostrar la vista
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Parabrisa>>> GetParabrisas()
+        public async Task<IActionResult> Crear()
         {
-            return await _context.Parabrisas.ToListAsync();
+            await CargarMarcasEnViewBag();
+            return View();
         }
 
-        // GET: api/Parabrisas/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Parabrisa>> GetParabrisa(int id)
-        {
-            var parabrisa = await _context.Parabrisas.FindAsync(id);
-
-            if (parabrisa == null)
-            {
-                return NotFound();
-            }
-
-            return parabrisa;
-        }
-
-        // PUT: api/Parabrisas/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutParabrisa(int id, Parabrisa parabrisa)
-        {
-            if (id != parabrisa.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(parabrisa).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ParabrisaExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Parabrisas
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: Parabrisas/Crear
         [HttpPost]
-        public async Task<ActionResult<Parabrisa>> PostParabrisa(Parabrisa parabrisa)
+        public async Task<IActionResult> Crear(Parabrisa parabrisa)
         {
-            _context.Parabrisas.Add(parabrisa);
-            await _context.SaveChangesAsync();
+            var json = JsonConvert.SerializeObject(parabrisa);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return CreatedAtAction("GetParabrisa", new { id = parabrisa.Id }, parabrisa);
-        }
-
-        // DELETE: api/Parabrisas/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteParabrisa(int id)
-        {
-            var parabrisa = await _context.Parabrisas.FindAsync(id);
-            if (parabrisa == null)
+            var response = await _httpClient.PostAsync("api/Parabrisas", content);
+            if (response.IsSuccessStatusCode)
             {
-                return NotFound();
+                return RedirectToAction(nameof(Index));
             }
 
-            _context.Parabrisas.Remove(parabrisa);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            await CargarMarcasEnViewBag(); // Recargar marcas si hay error
+            return View(parabrisa);
         }
 
-        private bool ParabrisaExists(int id)
+        // GET: Parabrisas/Editar/5
+        [HttpGet]
+        public async Task<IActionResult> Editar(int id)
         {
-            return _context.Parabrisas.Any(e => e.Id == id);
+            var response = await _httpClient.GetAsync($"api/Parabrisas/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var parabrisa = JsonConvert.DeserializeObject<Parabrisa>(content);
+
+                await CargarMarcasEnViewBag();
+                return View(parabrisa);
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Parabrisas/Editar/5
+        [HttpPost]
+        public async Task<IActionResult> Editar(int id, Parabrisa parabrisa)
+        {
+            var json = JsonConvert.SerializeObject(parabrisa);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync($"api/Parabrisas/{id}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            await CargarMarcasEnViewBag();
+            return View(parabrisa);
+        }
+
+        // Función auxiliar para obtener las marcas de la API y pasarlas a la vista
+        private async Task CargarMarcasEnViewBag()
+        {
+            var response = await _httpClient.GetAsync("api/Marcas");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var marcas = JsonConvert.DeserializeObject<IEnumerable<Marca>>(content);
+
+                // Creamos la lista para el <select> de HTML
+                ViewBag.Marcas = new SelectList(marcas, "Id", "NombreMarca");
+            }
+        }
+
+        // GET: Parabrisas/Eliminar/5
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            await _httpClient.DeleteAsync($"api/Parabrisas/{id}");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -1,0 +1,21 @@
+﻿@model IEnumerable<Inventario.Modelos.Entidades.Parabrisa>
+<div class="container mt-4">
+    <h2 class="text-success">Consulta de Stock para Empleados</h2>
+    <input type="text" id="busqueda" class="form-control mb-3" placeholder="Buscar por modelo..." />
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr><th>Modelo</th><th>Marca</th><th>Stock Disponible</th><th>Precio</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Modelo</td>
+                    <td>@item.MarcaId</td>
+                    <td><span class="badge @(item.Stock > 5 ? "bg-success" : "bg-danger")">@item.Stock</span></td>
+                    <td>$@item.Precio</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

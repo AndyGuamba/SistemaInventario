@@ -1,0 +1,28 @@
+﻿@model Inventario.Modelos.Entidades.Parabrisa
+@{
+    ViewData["Title"] = "Editar Parabrisa";
+}
+
+<div class="container mt-4">
+    <div class="card shadow p-4 border-warning">
+        <h2>Editar Producto</h2>
+        <form asp-action="Editar" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="mb-3">
+                <label class="form-label">Modelo</label>
+                <input asp-for="Modelo" class="form-control" required />
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Precio</label>
+                    <input asp-for="Precio" class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Stock</label>
+                    <input asp-for="Stock" class="form-control" />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+        </form>
+    </div>
+</div>

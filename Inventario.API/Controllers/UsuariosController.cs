@@ -21,81 +21,56 @@ namespace Inventario.API.Controllers
             _context = context;
         }
 
-        // GET: api/Usuarios
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+        // 1. MÉTODO DE LOGIN (El más importante para tu MVC)
+        // Este método valida si el usuario, contraseña y rol son correctos
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] Usuario loginRequest)
         {
-            return await _context.Usuarios.ToListAsync();
+            // Buscamos al usuario por su nombre en la DB de Render
+            var usuarioDB = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Nombre == loginRequest.Nombre);
+
+            if (usuarioDB == null)
+                return Unauthorized(new { mensaje = "Usuario no encontrado" });
+
+            // Verificamos si el Hash de la DB coincide con la clave que escribió el usuario
+            bool passwordValida = BCrypt.Net.BCrypt.Verify(loginRequest.Contraseña, usuarioDB.Contraseña);
+
+            // También validamos que el Rol (0 o 1) sea el que seleccionó en el Index del MVC
+            if (!passwordValida || usuarioDB.Rol != loginRequest.Rol)
+                return Unauthorized(new { mensaje = "Credenciales o Rol incorrectos" });
+
+            // Si todo está bien, devolvemos éxito
+            return Ok(new { mensaje = "¡Bienvenido!", usuario = usuarioDB.Nombre, rol = usuarioDB.Rol });
         }
 
-        // GET: api/Usuarios/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> GetUsuario(int id)
-        {
-            var usuario = await _context.Usuarios.FindAsync(id);
-
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-
-            return usuario;
-        }
-
-        // PUT: api/Usuarios/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(int id, Usuario usuario)
-        {
-            if (id != usuario.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(usuario).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UsuarioExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Usuarios
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // 2. POST: api/Usuarios (REGISTRO)
         [HttpPost]
         public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
         {
-            // 1. Encriptar la contraseña antes de mandarla al Context
-            // El "hash" es lo que se guardará en la base de datos
+            // Creamos el Hash: "Hola123" -> "$2a$11$K8..."
+            // Esto protege la clave incluso si alguien entra a tu PostgreSQL en Render
             usuario.Contraseña = BCrypt.Net.BCrypt.HashPassword(usuario.Contraseña);
+
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetUsuario", new { id = usuario.Id }, usuario);
         }
 
-        // DELETE: api/Usuarios/5
+        // 3. GET: api/Usuarios
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+        {
+            return await _context.Usuarios.ToListAsync();
+        }
+
+        // 4. DELETE: api/Usuarios/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
-            {
-                return NotFound();
-            }
+            if (usuario == null) return NotFound();
 
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();

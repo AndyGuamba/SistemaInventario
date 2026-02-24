@@ -1,0 +1,23 @@
+﻿@model Inventario.Modelos.Entidades.Marca
+@{
+    ViewData["Title"] = "Editar Marca";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 card shadow p-4">
+            <h2 class="text-warning mb-4">Modificar Marca</h2>
+            <form asp-action="Editar" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="mb-3">
+                    <label class="form-label">Nombre Actualizado</label>
+                    <input asp-for="MarcaVehiculo" class="form-control" required />
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-warning">Actualizar</button>
+                    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

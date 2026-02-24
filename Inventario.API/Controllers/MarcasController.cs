@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Inventario.API.Data;
 using Inventario.Modelos.Entidades;
-
 namespace Inventario.API.Controllers
 {
     [Route("api/[controller]")]
@@ -23,16 +22,18 @@ namespace Inventario.API.Controllers
 
         // GET: api/Marcas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Marca>>> GetAutos()
+        public async Task<ActionResult<IEnumerable<Marca>>> GetMarcas()
         {
-            return await _context.Autos.ToListAsync();
+            // Cambiado a _context.Marcas para ser consistente
+            return await _context.Marcas.ToListAsync();
         }
 
         // GET: api/Marcas/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Marca>> GetMarca(int id)
         {
-            var marca = await _context.Autos.FindAsync(id);
+            // Cambiado a _context.Marcas
+            var marca = await _context.Marcas.FindAsync(id);
 
             if (marca == null)
             {
@@ -43,7 +44,6 @@ namespace Inventario.API.Controllers
         }
 
         // PUT: api/Marcas/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutMarca(int id, Marca marca)
         {
@@ -74,11 +74,11 @@ namespace Inventario.API.Controllers
         }
 
         // POST: api/Marcas
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Marca>> PostMarca(Marca marca)
         {
-            _context.Autos.Add(marca);
+            // Cambiado a _context.Marcas
+            _context.Marcas.Add(marca);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetMarca", new { id = marca.Id }, marca);
@@ -88,13 +88,14 @@ namespace Inventario.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMarca(int id)
         {
-            var marca = await _context.Autos.FindAsync(id);
+            // Cambiado a _context.Marcas
+            var marca = await _context.Marcas.FindAsync(id);
             if (marca == null)
             {
                 return NotFound();
             }
 
-            _context.Autos.Remove(marca);
+            _context.Marcas.Remove(marca);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -102,7 +103,8 @@ namespace Inventario.API.Controllers
 
         private bool MarcaExists(int id)
         {
-            return _context.Autos.Any(e => e.Id == id);
+            // Cambiado a _context.Marcas
+            return _context.Marcas.Any(e => e.Id == id);
         }
     }
 }

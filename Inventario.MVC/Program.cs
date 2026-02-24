@@ -8,11 +8,13 @@ namespace Inventario.MVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            // 2. EXTRAEMOS LA URL DESDE APPSETTINGS.JSON
+            // Buscamos la sección "ApiSettings:BaseUrl" que creamos antes
+            var apiBaseUrl = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl");
 
             builder.Services.AddHttpClient("InventarioApi", client =>
             {
-                // Aquí pones la URL base de tu API (la de Render o local)
-                client.BaseAddress = new Uri("https://tu-api-en-render.onrender.com/");
+                client.BaseAddress = new Uri(apiBaseUrl);
             });
 
             var app = builder.Build();
@@ -21,7 +23,6 @@ namespace Inventario.MVC
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 

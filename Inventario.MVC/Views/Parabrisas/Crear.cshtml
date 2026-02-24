@@ -1,0 +1,33 @@
+﻿@model Inventario.Modelos.Entidades.Parabrisa
+@{
+    ViewData["Title"] = "Nuevo Parabrisa";
+}
+
+<div class="container mt-4">
+    <div class="card shadow p-4">
+        <h2 class="text-primary">Agregar Producto al Inventario</h2>
+        <form asp-action="Crear" method="post">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Modelo / Descripción</label>
+                    <input asp-for="Modelo" class="form-control" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Marca</label>
+                    <select asp-for="MarcaId" class="form-select" asp-items="ViewBag.Marcas" required>
+                        <option value="">-- Seleccione Marca --</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Precio</label>
+                    <input asp-for="Precio" type="number" step="0.01" class="form-control" required />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Stock Inicial</label>
+                    <input asp-for="Stock" type="number" class="form-control" required />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Guardar Producto</button>
+        </form>
+    </div>
+</div>

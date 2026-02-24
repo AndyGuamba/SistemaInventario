@@ -20,7 +20,7 @@ namespace Inventario.Modelos.Entidades
 
         public double Precio { get; set; }
 
-        public int CantidadStock { get; set; }
+        public int Stock { get; set; }
 
         public string? Ubicación { get; set; }
     }

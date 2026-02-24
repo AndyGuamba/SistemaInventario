@@ -14,5 +14,7 @@ public class InventarioApiContext : DbContext
     public DbSet<Parabrisa> Parabrisas { get; set; }
     public DbSet<Marca> Autos { get; set; }
     public DbSet<Usuario> Usuarios { get; set; }
+
+    public DbSet<Marca> Marcas { get; set; }
 }
 
