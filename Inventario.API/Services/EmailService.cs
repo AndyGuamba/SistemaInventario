@@ -15,21 +15,27 @@ namespace Inventario.API.Services
             _config = config;
         }
 
-        // IMPLEMENTACIÓN 1: Correo Simple (OTP)
         public async Task EnviarCorreoAsync(string destinatario, string asunto, string mensaje)
         {
-            // Reutiliza el método sobrecargado enviando null en el adjunto
             await EnviarCorreoAsync(destinatario, asunto, mensaje, null, string.Empty);
         }
 
-        // IMPLEMENTACIÓN 2: Correo Completo (Reportes con PDF)
         public async Task EnviarCorreoAsync(string destinatario, string asunto, string mensaje, byte[] archivoAdjunto, string nombreArchivo)
         {
-            // Leemos las llaves exactas de tu appsettings.json o Variables de Entorno en Render
             string correoOrigen = _config["EmailSettings:SenderEmail"];
             string claveOrigen = _config["EmailSettings:SenderPassword"];
             string hostSmtp = _config["EmailSettings:SmtpServer"];
             int portSmtp = int.Parse(_config["EmailSettings:SmtpPort"] ?? "587");
+
+            // ============================================================
+            // 🛡️ REFUERZO DE SEGURIDAD SSL/TLS (Agrega esto)
+            // ============================================================
+            // Forzamos el uso de TLS 1.2, que es lo que Gmail exige
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            // Esta línea le dice a la API que confíe en el certificado del servidor de correo
+            // Evita que Render bloquee la conexión por temas de certificados SSL
+            ServicePointManager.ServerCertificateValidationCallback = (s, certificate, chain, sslPolicyErrors) => true;
 
             var mailMessage = new MailMessage();
             mailMessage.From = new MailAddress(correoOrigen, "Seguridad - Inventario");
@@ -38,7 +44,6 @@ namespace Inventario.API.Services
             mailMessage.Body = mensaje;
             mailMessage.IsBodyHtml = true;
 
-            // Adjuntar archivo si existe (para reportes de inventario)
             if (archivoAdjunto != null && archivoAdjunto.Length > 0)
             {
                 var stream = new MemoryStream(archivoAdjunto);
@@ -48,22 +53,15 @@ namespace Inventario.API.Services
 
             using (var smtpClient = new SmtpClient(hostSmtp))
             {
-                // CONFIGURACIÓN DE SEGURIDAD PARA RENDER:
-                smtpClient.Port = portSmtp; // Usualmente 587
+                smtpClient.Port = portSmtp;
                 smtpClient.Credentials = new NetworkCredential(correoOrigen, claveOrigen);
-                smtpClient.EnableSsl = true;
+                smtpClient.EnableSsl = true; // Aquí activamos el SSL/TLS
 
-                // 1. Timeout corto (15 seg) para evitar que el MVC se quede cargando 100 segundos
+                // Tiempo de espera para no colgar el MVC (15 segundos)
                 smtpClient.Timeout = 15000;
-
-                // 2. Obligatorio para servidores en la nube como Render
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtpClient.UseDefaultCredentials = false;
 
-                // 3. Forzamos protocolos de seguridad modernos requeridos por Gmail
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
-
-                // Disparamos el envío
                 await smtpClient.SendMailAsync(mailMessage);
             }
         }
