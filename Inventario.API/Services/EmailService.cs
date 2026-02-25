@@ -52,15 +52,36 @@ namespace Inventario.API.Services
             using (var smtpClient = new SmtpClient(hostSmtp))
             {
                 smtpClient.Port = portSmtp;
-                smtpClient.Credentials = new NetworkCredential(correoOrigen, claveOrigen);
-                smtpClient.EnableSsl = true;
 
-                // --- 🛡️ DEFENSA 2: Anti-cuelgues en Render ---
-                smtpClient.Timeout = 15000; // Si en 15 seg no sale, falla rápido y no cuelga el MVC
+                // 🚨 EL ORDEN IMPORTA: Primero apagamos las credenciales por defecto...
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtpClient.UseDefaultCredentials = false;
 
-                await smtpClient.SendMailAsync(mailMessage);
+                // 🚨 ...Y LUEGO le pasamos las nuestras
+                smtpClient.Credentials = new NetworkCredential(correoOrigen, claveOrigen);
+                smtpClient.EnableSsl = true;
+
+                // Refuerzos de tiempo y seguridad
+                smtpClient.Timeout = 15000;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
+                ServicePointManager.ServerCertificateValidationCallback = (s, certificate, chain, sslPolicyErrors) => true;
+
+                try
+                {
+                    Console.WriteLine($"Intentando enviar correo a: {destinatario} desde Render...");
+                    await smtpClient.SendMailAsync(mailMessage);
+                    Console.WriteLine("¡Correo enviado con éxito!");
+                }
+                catch (Exception ex)
+                {
+                    // 🕵️ ESTO ES EL CÓDIGO ESPÍA: Imprimirá el error REAL en los logs de Render
+                    Console.WriteLine("=== ERROR CRÍTICO SMTP ===");
+                    Console.WriteLine("Mensaje: " + ex.Message);
+                    Console.WriteLine("Detalle Interno (InnerException): " + ex.InnerException?.Message);
+                    Console.WriteLine("==========================");
+
+                    throw; // Lanzamos el error para que Swagger lo atrape
+                }
             }
         }
     }
