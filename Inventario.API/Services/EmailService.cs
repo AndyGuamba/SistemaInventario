@@ -20,47 +20,51 @@ namespace Inventario.API.Services
             await EnviarCorreoAsync(destinatario, asunto, mensaje, null, string.Empty);
         }
 
+
         public async Task EnviarCorreoAsync(string destinatario, string asunto, string mensaje, byte[] archivoAdjunto, string nombreArchivo)
         {
-            // Leemos la configuración del nuevo JSON
-            string correoOrigen = _config["EmailSettings:SenderEmail"];
-            string claveOrigen = _config["EmailSettings:SenderPassword"];
-            string hostSmtp = _config["EmailSettings:SmtpServer"];
-            int portSmtp = int.Parse(_config["EmailSettings:SmtpPort"] ?? "587");
-            bool useSsl = bool.Parse(_config["EmailSettings:UseSsl"] ?? "true");
+            // 1. LEEMOS LA CONFIGURACIÓN (Asegúrate de que las llaves coincidan con tu JSON)
+            string hostSmtp = _config["EmailSettings:Host"];
+            int portSmtp = int.Parse(_config["EmailSettings:Port"] ?? "587");
+            string correoOrigen = _config["EmailSettings:User"];
+            string claveOrigen = _config["EmailSettings:Pass"];
+            string nombreOrigen = _config["EmailSettings:FromName"];
+            bool useSsl = bool.Parse(_config["EmailSettings:UseSsl"] ?? "true"); // <-- AQUÍ SE DECLARA useSsl
 
-            var mailMessage = new MailMessage();
-            mailMessage.From = new MailAddress(correoOrigen, "Seguridad - Inventario");
+            // 2. CREAMOS EL MENSAJE (AQUÍ SE DECLARA mailMessage)
+            var mailMessage = new MailMessage(); // <-- ESTA ES LA LÍNEA QUE TE FALTABA
+            mailMessage.From = new MailAddress(correoOrigen, nombreOrigen);
             mailMessage.To.Add(destinatario);
             mailMessage.Subject = asunto;
             mailMessage.Body = mensaje;
             mailMessage.IsBodyHtml = true;
 
+            // 3. ADJUNTAMOS EL ARCHIVO (Si existe)
             if (archivoAdjunto != null && archivoAdjunto.Length > 0)
             {
-                mailMessage.Attachments.Add(new Attachment(new MemoryStream(archivoAdjunto), nombreArchivo));
+                var stream = new MemoryStream(archivoAdjunto);
+                var attachment = new Attachment(stream, nombreArchivo, "application/pdf");
+                mailMessage.Attachments.Add(attachment);
             }
 
+            // 4. CONFIGURAMOS EL CARTERO (SmtpClient)
             using (var smtpClient = new SmtpClient(hostSmtp))
             {
                 smtpClient.Port = portSmtp;
                 smtpClient.Credentials = new NetworkCredential(correoOrigen, claveOrigen);
+                smtpClient.EnableSsl = useSsl; // <-- AHORA SÍ RECONOCE useSsl
 
-                // Usamos la variable del JSON para activar el SSL
-                smtpClient.EnableSsl = useSsl;
-
-                // --- REFUERZO PARA RENDER ---
-                smtpClient.Timeout = 15000; // 15 segundos máximo
+                // Refuerzos para que Render no se cuelgue
+                smtpClient.Timeout = 20000;
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtpClient.UseDefaultCredentials = false;
 
-                // Esta línea es el equivalente al "SSL Mode=Require" pero para correos
+                // Protocolos de seguridad modernos para Gmail
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
-
-                // Saltamos la validación local de certificados por si Render tiene problemas de confianza con Gmail
                 ServicePointManager.ServerCertificateValidationCallback = (s, certificate, chain, sslPolicyErrors) => true;
 
-                await smtpClient.SendMailAsync(mailMessage);
+                // ¡POR FIN ENVIAMOS!
+                await smtpClient.SendMailAsync(mailMessage); // <-- AHORA SÍ RECONOCE mailMessage
             }
         }
     }
