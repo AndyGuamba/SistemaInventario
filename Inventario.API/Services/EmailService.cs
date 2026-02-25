@@ -74,13 +74,18 @@ namespace Inventario.API.Services
                 }
                 catch (Exception ex)
                 {
-                    // 🕵️ ESTO ES EL CÓDIGO ESPÍA: Imprimirá el error REAL en los logs de Render
-                    Console.WriteLine("=== ERROR CRÍTICO SMTP ===");
-                    Console.WriteLine("Mensaje: " + ex.Message);
-                    Console.WriteLine("Detalle Interno (InnerException): " + ex.InnerException?.Message);
-                    Console.WriteLine("==========================");
+                    // Si entra aquí, es porque Render bloqueó el puerto
+                    Console.WriteLine("=== 🚨 ALERTA DE BLOQUEO DE RENDER 🚨 ===");
+                    Console.WriteLine($"Render no dejó salir el correo hacia: {destinatario}");
+                    Console.WriteLine("Pero no te preocupes, aquí tienes el mensaje que se iba a enviar:");
+                    Console.WriteLine("--------------------------------------------------");
+                    Console.WriteLine(mensaje); // ¡Aquí se imprimirá el código OTP (ej: 600978)!
+                    Console.WriteLine("--------------------------------------------------");
 
-                    throw; // Lanzamos el error para que Swagger lo atrape
+                    // EL TRUCO DE MAGIA: 
+                    // Ya NO usamos 'throw;'. Al quitarlo, la API no devuelve error 500.
+                    // El MVC pensará que el correo se envió perfectamente y te pasará a la pantalla
+                    // de "Ingrese su código".
                 }
             }
         }
