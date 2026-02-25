@@ -15,31 +15,33 @@ namespace Inventario.API.Services
             _config = config;
         }
 
+        // IMPLEMENTACIÓN 1: Correo Simple (OTP)
         public async Task EnviarCorreoAsync(string destinatario, string asunto, string mensaje)
         {
             await EnviarCorreoAsync(destinatario, asunto, mensaje, null, string.Empty);
         }
 
-
+        // IMPLEMENTACIÓN 2: Correo Completo (Reportes con PDF)
         public async Task EnviarCorreoAsync(string destinatario, string asunto, string mensaje, byte[] archivoAdjunto, string nombreArchivo)
         {
-            // 1. LEEMOS LA CONFIGURACIÓN (Asegúrate de que las llaves coincidan con tu JSON)
-            string hostSmtp = _config["EmailSettings:Host"];
-            int portSmtp = int.Parse(_config["EmailSettings:Port"] ?? "587");
-            string correoOrigen = _config["EmailSettings:User"];
-            string claveOrigen = _config["EmailSettings:Pass"];
-            string nombreOrigen = _config["EmailSettings:FromName"];
-            bool useSsl = bool.Parse(_config["EmailSettings:UseSsl"] ?? "true"); // <-- AQUÍ SE DECLARA useSsl
+            // Leemos tus llaves exactas del JSON
+            string correoOrigen = _config["EmailSettings:SenderEmail"];
+            string claveOrigen = _config["EmailSettings:SenderPassword"];
+            string hostSmtp = _config["EmailSettings:SmtpServer"];
+            int portSmtp = int.Parse(_config["EmailSettings:SmtpPort"] ?? "587");
 
-            // 2. CREAMOS EL MENSAJE (AQUÍ SE DECLARA mailMessage)
-            var mailMessage = new MailMessage(); // <-- ESTA ES LA LÍNEA QUE TE FALTABA
-            mailMessage.From = new MailAddress(correoOrigen, nombreOrigen);
+            // --- 🛡️ DEFENSA 1: Protocolos de Google para la nube ---
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
+            // Ignoramos validaciones estrictas de certificados en Linux/Render
+            ServicePointManager.ServerCertificateValidationCallback = (s, certificate, chain, sslPolicyErrors) => true;
+
+            var mailMessage = new MailMessage();
+            mailMessage.From = new MailAddress(correoOrigen, "Seguridad - Inventario");
             mailMessage.To.Add(destinatario);
             mailMessage.Subject = asunto;
             mailMessage.Body = mensaje;
             mailMessage.IsBodyHtml = true;
 
-            // 3. ADJUNTAMOS EL ARCHIVO (Si existe)
             if (archivoAdjunto != null && archivoAdjunto.Length > 0)
             {
                 var stream = new MemoryStream(archivoAdjunto);
@@ -47,24 +49,18 @@ namespace Inventario.API.Services
                 mailMessage.Attachments.Add(attachment);
             }
 
-            // 4. CONFIGURAMOS EL CARTERO (SmtpClient)
             using (var smtpClient = new SmtpClient(hostSmtp))
             {
                 smtpClient.Port = portSmtp;
                 smtpClient.Credentials = new NetworkCredential(correoOrigen, claveOrigen);
-                smtpClient.EnableSsl = useSsl; // <-- AHORA SÍ RECONOCE useSsl
+                smtpClient.EnableSsl = true;
 
-                // Refuerzos para que Render no se cuelgue
-                smtpClient.Timeout = 20000;
+                // --- 🛡️ DEFENSA 2: Anti-cuelgues en Render ---
+                smtpClient.Timeout = 15000; // Si en 15 seg no sale, falla rápido y no cuelga el MVC
                 smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtpClient.UseDefaultCredentials = false;
 
-                // Protocolos de seguridad modernos para Gmail
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
-                ServicePointManager.ServerCertificateValidationCallback = (s, certificate, chain, sslPolicyErrors) => true;
-
-                // ¡POR FIN ENVIAMOS!
-                await smtpClient.SendMailAsync(mailMessage); // <-- AHORA SÍ RECONOCE mailMessage
+                await smtpClient.SendMailAsync(mailMessage);
             }
         }
     }
