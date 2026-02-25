@@ -1,0 +1,68 @@
+﻿@model Inventario.Modelos.Entidades.Usuario
+
+@{
+    ViewData["Title"] = "Registrar Nuevo Empleado";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0"><i class="bi bi-person-plus-fill"></i> Registro de Personal</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger shadow-sm">
+                            <i class="bi bi-exclamation-circle-fill"></i> @ViewBag.Error
+                        </div>
+                    }
+
+                    @* CORREGIDO: Apuntamos explícitamente al AdminController para evitar el 404 *@
+                    <form asp-controller="Admin" asp-action="RegistrarEmpleado" method="post">
+
+                        @* Campo de Cédula *@
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Número de Cédula</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
+                                @* Usamos asp-for para que se vincule automáticamente con el modelo *@
+                                <input asp-for="Cedula" class="form-control" placeholder="Ej: 1752..." required maxlength="10" />
+                            </div>
+                            <span asp-validation-for="Cedula" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre Completo</label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Nombre del empleado" required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Contraseña Provisional</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                @* Importante: El nombre debe coincidir con la 'ñ' si así está en tu clase Usuario *@
+                                <input asp-for="Contraseña" type="password" class="form-control" placeholder="Mínimo 6 caracteres" required />
+                            </div>
+                        </div>
+
+                        @* Información informativa del Rol *@
+                        <div class="alert alert-info py-2 small">
+                            <i class="bi bi-info-circle"></i> El nuevo usuario será registrado automáticamente con el rol de <strong>Empleado</strong>.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save"></i> Guardar en Base de Datos
+                            </button>
+                            @* Ajusta este enlace según el controlador de tu pantalla principal *@
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

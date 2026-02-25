@@ -6,17 +6,52 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-6 card shadow p-4">
-            <h2 class="text-primary mb-4">Registrar Nueva Marca</h2>
-            <form asp-action="Crear" method="post">
-                <div class="mb-3">
-                    <label class="form-label">Nombre de la Marca</label>
-                    <input asp-for="MarcaVehiculo" class="form-control" placeholder="Ej: Pilkington" required />
+            <h2 class="text-primary mb-4">
+                <i class="bi bi-tag-fill"></i> Registrar Nueva Marca
+            </h2>
+
+            @* 1. LA BOCINA: Ahora con ID para que el MVC pueda inyectar mensajes si es necesario *@
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger shadow-sm alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> @ViewBag.Error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            }
+
+            @* 2. FORMULARIO: Aseguramos que apunte al controlador 'Marcas' (en plural) *@
+            <form asp-controller="Marcas" asp-action="Crear" method="post">
+
+                @* 3. TOKEN DE SEGURIDAD: Evita ataques de falsificación de solicitud *@
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nombre de la Marca</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-pencil-square"></i></span>
+                        @* Agregamos el autocomplete="off" para que el navegador no estorbe *@
+                        <input asp-for="MarcaVehiculo" class="form-control" placeholder="Ej: Pilkington, Fuyao, etc." required autocomplete="off" />
+                    </div>
+                    @* 4. VALIDACIÓN: Vital para que el MVC pinte el error si la API rechaza el nombre *@
+                    <span asp-validation-for="MarcaVehiculo" class="text-danger small"></span>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a asp-action="Index" class="btn btn-secondary me-md-2">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Guardar Marca
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @* 5. SCRIPTS DE VALIDACIÓN: Asegúrate de que los archivos existan en wwwroot/lib *@
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

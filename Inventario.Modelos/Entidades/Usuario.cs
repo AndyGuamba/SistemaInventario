@@ -10,7 +10,7 @@ namespace Inventario.Modelos.Entidades
 {
     public class Usuario
     {
-        [Key] public string Cedula {  get; set; }
+        [Key] public string? Cedula {  get; set; }
         public string? Nombre { get; set; }
 
         public string? Correo { get; set; }
@@ -18,5 +18,10 @@ namespace Inventario.Modelos.Entidades
         public string? Contraseña { get; set; }
 
         public RolUsuario Rol { get; set; }
+        // Almacena el código de 6 dígitos enviado al correo
+        public string? CodigoVerificacion { get; set; }
+
+        // Define el tiempo de vida del código (ej. 10 minutos)
+        public DateTime? FechaExpiracionCodigo { get; set; }
     }
 }

@@ -1,7 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Inventario.API.Data;
-// Importamos NewtonsoftJson para manejar los ciclos de referencia
+using Inventario.API.Services;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using QuestPDF.Infrastructure;
 
 namespace Inventario.API
 {
@@ -9,29 +10,41 @@ namespace Inventario.API
     {
         public static void Main(string[] args)
         {
+            QuestPDF.Settings.License = LicenseType.Community;
             var builder = WebApplication.CreateBuilder(args);
 
-            // 1. CONFIGURACIÓN DE CONTROLADORES CON NEWTONSOFTJSON
-            // Esto soluciona el Error 500 al evitar que el JSON entre en bucles infinitos
+            // 1. AGREGAR POLÍTICA DE CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    builder => builder.AllowAnyOrigin()
+                                      .AllowAnyMethod()
+                                      .AllowAnyHeader());
+            });
+
+            // CONFIGURACIÓN DE CONTROLADORES
             builder.Services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {
-                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
                 });
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // 2. CADENA DE CONEXIÓN A POSTGRESQL (Render/Local)
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
             builder.Services.AddDbContext<InventarioApiContext>(options =>
                 options.UseNpgsql(connectionString));
 
+            // Registro de servicios
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
             var app = builder.Build();
 
-            // 3. CONFIGURACIÓN DE SWAGGER
+            // 2. USAR CORS (Debe ir antes de Authorization)
+            app.UseCors("AllowAll");
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -39,6 +52,7 @@ namespace Inventario.API
                 c.RoutePrefix = "swagger";
             });
 
+            // Importante para despliegues en la nube
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();

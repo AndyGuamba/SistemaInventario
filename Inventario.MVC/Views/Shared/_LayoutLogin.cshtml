@@ -3,15 +3,36 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Acceso - Inventario</title>
+    <title>@ViewData["Title"] - Inventario</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @* Agregamos site.css por si tienes estilos personalizados *@
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* Estilo para centrar el contenido en la pantalla */
+        body, html {
+            height: 100%;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body class="bg-light">
-    <div class="container">
-        @RenderBody()
+    <div class="container main-container">
+        <div class="w-100">
+            @RenderBody()
+        </div>
     </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @* RenderSection permite usar scripts específicos en las vistas de login o validación *@
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

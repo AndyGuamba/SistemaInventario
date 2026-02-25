@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System.Text;
 using Inventario.Modelos.Entidades;
+using Microsoft.AspNetCore.Http;
 
 namespace Inventario.MVC.Controllers
 {
@@ -11,17 +12,12 @@ namespace Inventario.MVC.Controllers
 
         public AccesoController(IHttpClientFactory httpClientFactory)
         {
-            // Usamos el cliente configurado para conectar con la API en Render
             _httpClient = httpClientFactory.CreateClient("InventarioApi");
         }
 
-        // 1. Selección de Perfil (Admin o Empleado)
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
-        // 2. Muestra el formulario de Login
+        [HttpGet]
         public IActionResult Login(int rol)
         {
             ViewBag.RolValor = rol;
@@ -29,58 +25,94 @@ namespace Inventario.MVC.Controllers
             return View();
         }
 
-        // 3. VALIDACIÓN REAL CON LA API
         [HttpPost]
-        public async Task<IActionResult> Validar(string cedula, string password, int rol)
+        public async Task<IActionResult> Login(string cedula, string contraseña, int rol)
         {
-            var loginData = new
+            if (string.IsNullOrEmpty(cedula) || string.IsNullOrEmpty(contraseña))
             {
-                Cedula = cedula, // Usamos la nueva Llave Primaria
-                Contraseña = password,
-                Rol = rol
-            };
+                ViewBag.Error = "Por favor, complete todos los campos.";
+                ViewBag.RolValor = rol;
+                ViewBag.RolNombre = (rol == 1) ? "Administrador" : "Empleado";
+                return View();
+            }
 
+            var loginData = new { Cedula = cedula.Trim(), Contraseña = contraseña, Rol = rol };
             var content = new StringContent(JsonConvert.SerializeObject(loginData), Encoding.UTF8, "application/json");
 
             try
             {
-                // Llamamos al método Login de la API que verifica el Hash de BCrypt
-                var response = await _httpClient.PostAsync("api/Usuarios/login", content);
+                var response = await _httpClient.PostAsync("api/usuarios/login", content);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Guardamos los datos en la SESIÓN para el Layout
-                    HttpContext.Session.SetString("UsuarioCedula", cedula);
-                    HttpContext.Session.SetInt32("UsuarioRol", rol);
+                    var usuarioJson = await response.Content.ReadAsStringAsync();
+                    dynamic apiResponse = JsonConvert.DeserializeObject(usuarioJson);
 
-                    // REDIRECCIÓN POR ROL CORREGIDA
-                    if (rol == 1)
+                    if (apiResponse != null)
                     {
-                        return RedirectToAction("Index", "Marcas");
-                    }
-                    else
-                    {
-                        // El empleado va directo a su vista de solo lectura
-                        return RedirectToAction("Inventario", "Consultas");
+                        string nombreApi = apiResponse.usuario?.ToString() ?? "Empleado";
+                        int rolApi = (int?)apiResponse.rol ?? rol;
+                        string cedulaApi = apiResponse.cedula?.ToString() ?? cedula.Trim();
+
+                        // --- CASO 1: ADMINISTRADOR ---
+                        if (rol == 1 && rolApi == 1)
+                        {
+                            var otpRequest = new { Cedula = cedulaApi };
+                            var otpContent = new StringContent(JsonConvert.SerializeObject(otpRequest), Encoding.UTF8, "application/json");
+
+                            var otpRes = await _httpClient.PostAsync("api/usuarios/GenerarOTP", otpContent);
+
+                            if (otpRes.IsSuccessStatusCode)
+                            {
+                                TempData["CedulaAdmin"] = cedulaApi;
+                                return RedirectToAction("Validar", "OTP");
+                            }
+                            else
+                            {
+                                // AQUÍ ESTÁ LA MAGIA ARREGLADA
+                                var errorenCorreo = await otpRes.Content.ReadAsStringAsync();
+
+                                if (string.IsNullOrWhiteSpace(errorenCorreo))
+                                {
+                                    errorenCorreo = $"Error HTTP {(int)otpRes.StatusCode} ({otpRes.StatusCode}). Revisa que la API esté corriendo con los últimos cambios.";
+                                }
+
+                                ViewBag.Error = $"AVISO DE SEGURIDAD: {errorenCorreo}";
+                            }
+                        }
+                        // --- CASO 2: EMPLEADO ---
+                        else if (rol == 0 && rolApi == 0)
+                        {
+                            HttpContext.Session.SetString("UsuarioCedula", cedulaApi);
+                            HttpContext.Session.SetInt32("UsuarioRol", rolApi);
+                            HttpContext.Session.SetString("UsuarioNombre", nombreApi);
+
+                            return RedirectToAction("Index", "Home");
+                        }
+                        else
+                        {
+                            ViewBag.Error = "El rol seleccionado no coincide con sus credenciales.";
+                        }
                     }
                 }
+                else
+                {
+                    ViewBag.Error = "Cédula o contraseña incorrectas.";
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ViewBag.Error = "No se pudo conectar con el servidor. Intente más tarde.";
+                ViewBag.Error = $"MVC NO PUDO CONECTAR: {ex.Message}";
             }
 
-            // Si falla, volvemos al login con el mensaje correspondiente
-            ViewBag.Error = ViewBag.Error ?? "Cédula o contraseña incorrectos.";
             ViewBag.RolValor = rol;
             ViewBag.RolNombre = (rol == 1) ? "Administrador" : "Empleado";
-            return View("Login");
+            return View();
         }
 
-        // 4. Cerrar Sesión
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear(); // Borra los datos de la sesión
+            HttpContext.Session.Clear();
             return RedirectToAction("Index");
         }
     }

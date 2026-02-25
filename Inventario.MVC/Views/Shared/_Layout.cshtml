@@ -7,14 +7,13 @@
     <title>@ViewData["Title"] - Sistema de Inventario</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    @* Agregamos iconos de Bootstrap para una interfaz más profesional *@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Acceso" asp-action="Index">
+                <a class="navbar-brand" asp-area="" asp-controller="@(Context.Session.GetInt32("UsuarioRol") == 1 ? "Parabrisas" : "Consultas")" asp-action="Index">
                     <i class="bi bi-box-seam"></i> Inventario
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -23,13 +22,39 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        @* LÓGICA DE NAVEGACIÓN BASADA EN SESIÓN *@
+
                         @if (Context.Session.GetString("UsuarioCedula") != null)
                         {
                             var rol = Context.Session.GetInt32("UsuarioRol");
 
-                            @if (rol == 1) // OPCIONES EXCLUSIVAS PARA ADMINISTRADOR
+                            @if (rol == 1) // OPCIONES PARA ADMINISTRADOR
                             {
+                                @* Menú Desplegable de Gestión *@
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-white" href="#" id="gestionarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-plus-circle"></i> Agregar Nuevo
+                                    </a>
+                                    <ul class="dropdown-menu shadow" aria-labelledby="gestionarDropdown">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Parabrisas" asp-action="Crear">
+                                                <i class="bi bi-car-front"></i> Nuevo Parabrisas
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Marcas" asp-action="Crear">
+                                                <i class="bi bi-tag"></i> Nueva Marca
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            @* ¡AQUÍ ESTÁ LA CORRECCIÓN! Ahora apunta a Admin *@
+                                            <a class="dropdown-item" asp-controller="Admin" asp-action="RegistrarEmpleado">
+                                                <i class="bi bi-person-plus"></i> Registrar Empleado
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+
                                 <li class="nav-item">
                                     <a class="nav-link text-white" asp-controller="Marcas" asp-action="Index">
                                         <i class="bi bi-tags"></i> Marcas
@@ -37,20 +62,42 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-white" asp-controller="Parabrisas" asp-action="Index">
-                                        <i class="bi bi-car-front"></i> Productos
+                                        <i class="bi bi-list-ul"></i> Lista Productos
                                     </a>
+                                </li>
+
+                                @* NUEVO: MENÚ DE REPORTES PDF *@
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-white" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-file-earmark-pdf"></i> Reportes
+                                    </a>
+                                    <ul class="dropdown-menu shadow" aria-labelledby="reportesDropdown">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Parabrisas" asp-action="ExportarPdf" asp-route-enviarCorreo="false">
+                                                <i class="bi bi-download"></i> Descargar PDF
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Parabrisas" asp-action="ExportarPdf" asp-route-enviarCorreo="true">
+                                                <i class="bi bi-envelope-at"></i> Enviar a mi Correo
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
                             }
 
-                            @* OPCIÓN COMÚN PARA AMBOS ROLES *@
+                            @* OPCIÓN COMÚN: Consultar Stock *@
                             <li class="nav-item">
                                 <a class="nav-link text-white" asp-controller="Consultas" asp-action="Inventario">
                                     <i class="bi bi-search"></i> Consultar Stock
                                 </a>
                             </li>
 
-                            @* BOTÓN DE SALIDA AL EXTREMO DERECHO *@
-                            <li class="nav-item ms-auto">
+                            @* SALUDO Y BOTÓN DE SALIDA *@
+                            <li class="nav-item ms-auto d-flex align-items-center">
+                                <span class="text-white-50 me-3 small">
+                                    <i class="bi bi-person-circle"></i> @Context.Session.GetString("UsuarioNombre")
+                                </span>
                                 <a class="nav-link text-danger fw-bold" asp-controller="Acceso" asp-action="Logout">
                                     <i class="bi bi-door-open"></i> Salir
                                 </a>
@@ -61,7 +108,24 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
+        @* CONTENEDOR DE ALERTAS GLOBALES *@
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

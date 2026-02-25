@@ -1,27 +1,57 @@
 ﻿@{
-    Layout = "_LayoutLogin"; // Usaremos un layout sin barra de navegación para el inicio
+    Layout = "_LayoutLogin";
+    ViewData["Title"] = "Selección de Perfil";
 }
 
 <div class="container mt-5 text-center">
-    <h2 class="mb-4">Bienvenido al Sistema de Inventario</h2>
-    <p class="text-muted">Por favor, seleccione su perfil de ingreso:</p>
+    <div class="py-4">
+        <i class="bi bi-box-seam-fill text-dark" style="font-size: 4rem;"></i>
+        <h2 class="mt-3 fw-bold">Sistema de Inventario de Parabrisas</h2>
+        <p class="text-muted">Seleccione su perfil de ingreso para continuar</p>
+    </div>
 
-    <div class="row justify-content-center mt-5">
+    @* Muestra errores si el login falla o la sesión expira *@
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mx-auto shadow-sm" style="max-width: 500px;" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.Error
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center mt-4 g-4">
+        @* Tarjeta para Administrador (Rol 1) *@
         <div class="col-md-4">
-            <div class="card shadow-lg border-primary">
-                <div class="card-body">
-                    <i class="bi bi-person-badge-fill" style="font-size: 3rem; color: #0d6efd;"></i>
-                    <h4 class="mt-3">Administrador</h4>
-                    <a asp-action="Login" asp-route-rol="1" class="btn btn-primary w-100 mt-3">Ingresar</a>
+            <div class="card shadow-lg border-0 h-100 hover-shadow">
+                <div class="card-body p-5 d-flex flex-column">
+                    <div class="mb-4">
+                        <i class="bi bi-person-badge-fill" style="font-size: 4rem; color: #0d6efd;"></i>
+                    </div>
+                    <h4 class="fw-bold">Administrador</h4>
+                    <p class="small text-muted mb-4">Gestión de inventario, personal y reportes</p>
+
+                    @* Forzamos que vaya al controlador Acceso *@
+                    <a asp-controller="Acceso" asp-action="Login" asp-route-rol="1" class="btn btn-primary btn-lg w-100 mt-auto shadow-sm">
+                        <i class="bi bi-shield-lock me-1"></i> Ingresar
+                    </a>
                 </div>
             </div>
         </div>
+
+        @* Tarjeta para Empleado (Rol 0) *@
         <div class="col-md-4">
-            <div class="card shadow-lg border-success">
-                <div class="card-body">
-                    <i class="bi bi-person-fill" style="font-size: 3rem; color: #198754;"></i>
-                    <h4 class="mt-3">Empleado</h4>
-                    <a asp-action="Login" asp-route-rol="0" class="btn btn-success w-100 mt-3">Ingresar</a>
+            <div class="card shadow-lg border-0 h-100 hover-shadow">
+                <div class="card-body p-5 d-flex flex-column">
+                    <div class="mb-4">
+                        <i class="bi bi-person-fill" style="font-size: 4rem; color: #198754;"></i>
+                    </div>
+                    <h4 class="fw-bold">Empleado</h4>
+                    <p class="small text-muted mb-4">Consulta de stock y búsqueda de productos</p>
+
+                    @* Forzamos que vaya al controlador Acceso *@
+                    <a asp-controller="Acceso" asp-action="Login" asp-route-rol="0" class="btn btn-success btn-lg w-100 mt-auto shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Ingresar
+                    </a>
                 </div>
             </div>
         </div>

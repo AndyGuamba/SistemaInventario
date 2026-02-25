@@ -1,0 +1,51 @@
+﻿@{
+    Layout = "_LayoutLogin";
+    ViewData["Title"] = "Verificación de Seguridad";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-dark text-white text-center py-3">
+                    <h4 class="mb-0"><i class="bi bi-shield-lock-fill"></i> Verificación 2FA</h4>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="text-muted">
+                        Se ha enviado un código de seguridad a su correo institucional.
+                        Por favor, ingréselo a continuación para acceder al sistema.
+                    </p>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger shadow-sm">
+                            <i class="bi bi-exclamation-triangle-fill"></i> @ViewBag.Error
+                        </div>
+                    }
+
+                    <form asp-action="Confirmar" method="post">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Código de 6 dígitos</label>
+                            <input type="text" name="codigo" class="form-control form-control-lg text-center fw-bold"
+                                   placeholder="000000" maxlength="6" required autofocus
+                                   style="letter-spacing: 5px; font-size: 1.5rem;" />
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                                <i class="bi bi-check-circle-fill"></i> Confirmar Acceso
+                            </button>
+
+                            <a asp-controller="Acceso" asp-action="Index" class="btn btn-link text-decoration-none">
+                                <i class="bi bi-arrow-left"></i> Volver al inicio
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light text-center py-2">
+                    <small class="text-muted">El código expira en 10 minutos</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

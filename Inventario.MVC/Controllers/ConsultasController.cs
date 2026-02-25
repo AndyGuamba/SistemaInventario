@@ -22,17 +22,11 @@ namespace Inventario.MVC.Controllers
         }
 
         // Vista de búsqueda rápida
-        public async Task<IActionResult> Inventario()
+        public async Task<IActionResult> Inventario(string marca, string modelo)
         {
-            // Si no hay sesión, mandarlo al inicio
-            if (!UsuarioEstaAutenticado())
-            {
-                return RedirectToAction("Index", "Acceso");
-            }
-
             try
             {
-                // Llamamos al controlador de Parabrisas que YA existe en la API
+                // Llamada a la API de Render
                 var response = await _httpClient.GetAsync("api/Parabrisas");
 
                 if (response.IsSuccessStatusCode)
@@ -40,14 +34,27 @@ namespace Inventario.MVC.Controllers
                     var content = await response.Content.ReadAsStringAsync();
                     var lista = JsonConvert.DeserializeObject<IEnumerable<Parabrisa>>(content);
 
-                    // Si 'lista' es nulo, enviamos una lista vacía para que la vista no explote
-                    return View(lista ?? new List<Parabrisa>());
+                    // Filtramos por Marca y Modelo si el usuario escribió algo
+                    if (!string.IsNullOrEmpty(marca))
+                    {
+                        lista = lista.Where(p => p.Marca.MarcaVehiculo.Contains(marca, StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    if (!string.IsNullOrEmpty(modelo))
+                    {
+                        lista = lista.Where(p => p.Modelo.Contains(modelo, StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    // Guardamos los términos de búsqueda para que no se borren del input al recargar
+                    ViewBag.MarcaBusqueda = marca;
+                    ViewBag.ModeloBusqueda = modelo;
+
+                    return View(lista.ToList());
                 }
             }
             catch (Exception)
             {
-                // Si la conexión falla, evitamos la pantalla roja devolviendo una lista vacía
-                ViewBag.Error = "Error de conexión con la base de datos.";
+                ViewBag.Error = "Error de conexión con el servidor.";
             }
 
             return View(new List<Parabrisa>());
