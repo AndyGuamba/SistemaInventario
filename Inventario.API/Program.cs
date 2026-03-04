@@ -56,6 +56,20 @@ namespace Inventario.API
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<Inventario.API.Data.InventarioApiContext>();
+                    // Esto fuerza a la base de datos de Render a aplicar la última migración (CambiarMarcaATextoLibre)
+                    context.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ocurrió un error al migrar la base de datos: {ex.Message}");
+                }
+            }
 
             app.Run();
         }
