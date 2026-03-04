@@ -2,6 +2,8 @@
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using Inventario.Modelos.Entidades;
+using System;
+using System.Collections.Generic;
 
 namespace Inventario.API.Reportes
 {
@@ -48,7 +50,6 @@ namespace Inventario.API.Reportes
 
                 column.Item().Table(table =>
                 {
-                    // Definimos 6 columnas para que encajen con tu modelo
                     table.ColumnsDefinition(columns =>
                     {
                         columns.ConstantColumn(40);  // ID
@@ -59,7 +60,6 @@ namespace Inventario.API.Reportes
                         columns.RelativeColumn(2);   // Precio
                     });
 
-                    // Cabeceras de la tabla
                     table.Header(header =>
                     {
                         header.Cell().Element(CellStyle).Text("ID").SemiBold().FontColor(Colors.White);
@@ -75,13 +75,14 @@ namespace Inventario.API.Reportes
                         }
                     });
 
-                    // Llenado con los datos EXACTOS de tu clase Parabrisa
                     foreach (var item in listaParabrisas)
                     {
                         table.Cell().Element(BlockStyle).Text(item.Id.ToString());
                         table.Cell().Element(BlockStyle).Text(item.Modelo ?? "N/A");
-                        // OJO: Asumo que en tu clase Marca tienes una propiedad MarcaVehiculo (por el código anterior que me pasaste)
-                        table.Cell().Element(BlockStyle).Text(item.Marca?.MarcaVehiculo ?? "N/A");
+
+                        // CORRECCIÓN: Ahora es solo item.Marca
+                        table.Cell().Element(BlockStyle).Text(item.Marca ?? "N/A");
+
                         table.Cell().Element(BlockStyle).Text(item.Tipo ?? "N/A");
                         table.Cell().Element(BlockStyle).Text(item.Stock.ToString());
                         table.Cell().Element(BlockStyle).Text($"${item.Precio:F2}");

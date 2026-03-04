@@ -36,7 +36,7 @@
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td>@item.Marca?.MarcaVehiculo</td>
+                            <td>@item.Marca</td>
                             <td>@item.Modelo</td>
                             <td>@item.Anio</td>
                             <td><span class="badge bg-info text-dark">@item.Stock</span></td>
@@ -48,7 +48,6 @@
         }
         else
         {
-            @* Mensaje de Inexistente *@
             <div class="text-center py-5">
                 <i class="bi bi-exclamation-octagon text-danger display-1"></i>
                 <h3 class="mt-3 text-secondary">Producto Inexistente</h3>

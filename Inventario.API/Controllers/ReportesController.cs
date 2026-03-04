@@ -22,8 +22,8 @@ namespace Inventario.API.Controllers
         [HttpGet("descargar")]
         public async Task<IActionResult> DescargarPdf()
         {
-            // Incluimos la marca para que el reporte no salga con campos vacíos
-            var lista = await _context.Parabrisas.Include(p => p.Marca).ToListAsync();
+            // CORRECCIÓN: Quitamos el .Include(p => p.Marca) porque ya es un texto normal
+            var lista = await _context.Parabrisas.ToListAsync();
             var pdfBytes = GeneradorPdfInventario.Generar(lista);
 
             return File(pdfBytes, "application/pdf", "Inventario_Parabrisas.pdf");
@@ -37,7 +37,8 @@ namespace Inventario.API.Controllers
             if (usuario == null || string.IsNullOrEmpty(usuario.Correo))
                 return NotFound("Usuario o correo electrónico no encontrado.");
 
-            var lista = await _context.Parabrisas.Include(p => p.Marca).ToListAsync();
+            // CORRECCIÓN: Quitamos el .Include(p => p.Marca)
+            var lista = await _context.Parabrisas.ToListAsync();
             var pdfBytes = GeneradorPdfInventario.Generar(lista);
 
             try

@@ -25,14 +25,16 @@
                         <option value="LPD">LPD - Lateral Posterior Derecho</option>
                         <option value="VRD">VRD - Ventolera Derecha</option>
                         <option value="VRI">VRI - Ventolera Izquierda</option>
+                        <option value="CauchoD">CauchoD- Caucho Delantero </option>
+                        <option value="CauchoP">CauchoP- Caucho Posterior </option>
+                        <option value="CauchoVR">CauchoVR- Caucho Ventolera </option>
                     </select>
                 </div>
 
+                @* CORRECCIÓN: Eliminado el select MarcaId, reemplazado por input Marca *@
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold">Marca</label>
-                    <select asp-for="MarcaId" class="form-select"
-                            asp-items="@(new SelectList(ViewBag.Marcas ?? new List<Inventario.Modelos.Entidades.Marca>(), "Id", "MarcaVehiculo"))" required>
-                    </select>
+                    <input asp-for="Marca" class="form-control" required />
                 </div>
 
                 <div class="col-md-4 mb-3">

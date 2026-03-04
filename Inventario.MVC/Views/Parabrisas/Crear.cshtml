@@ -21,7 +21,6 @@
             @Html.AntiForgeryToken()
 
             <div class="row">
-                @* Campo: Tipo de Vidrio (Actualizado con tus códigos) *@
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold">Tipo de Vidrio</label>
                     <select asp-for="Tipo" class="form-select" required>
@@ -36,37 +35,34 @@
                         <option value="LPD">LPD - Lateral Posterior Derecho</option>
                         <option value="VRD">VRD - Ventolera Derecha</option>
                         <option value="VRI">VRI - Ventolera Izquierda</option>
+                        <option value="CauchoD">CauchoD- Caucho Delantero </option>
+                        <option value="CauchoP">CauchoP- Caucho Posterior </option>
+                        <option value="CauchoVR">CauchoVR- Caucho Ventolera </option>
                     </select>
                     <span asp-validation-for="Tipo" class="text-danger small"></span>
                 </div>
 
-                @* Campo: Marca de Vehículo *@
+                @* CORRECCIÓN: Ahora es un input de texto normal *@
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold">Marca de Vehículo</label>
-                    <select asp-for="MarcaId" class="form-select"
-                            asp-items="@(new SelectList(ViewBag.Marcas ?? new List<Inventario.Modelos.Entidades.Marca>(), "Id", "MarcaVehiculo"))" required>
-                        <option value="">-- Seleccione Marca --</option>
-                    </select>
-                    <span asp-validation-for="MarcaId" class="text-danger small"></span>
+                    <input asp-for="Marca" class="form-control" placeholder="Ej: Toyota, Chevrolet" required />
+                    <span asp-validation-for="Marca" class="text-danger small"></span>
                 </div>
 
-                @* Campo: Modelo *@
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold">Modelo</label>
-                    <input asp-for="Modelo" class="form-control" placeholder="Ej: Sail, Hilux, Tucson" required />
+                    <input asp-for="Modelo" class="form-control" placeholder="Ej: Sail, Hilux" required />
                     <span asp-validation-for="Modelo" class="text-danger small"></span>
                 </div>
             </div>
 
             <div class="row">
-                @* Campo: Año *@
                 <div class="col-md-3 mb-3">
                     <label class="form-label fw-bold">Año</label>
                     <input asp-for="Anio" type="number" class="form-control" placeholder="Ej: 2024" />
                     <span asp-validation-for="Anio" class="text-danger small"></span>
                 </div>
 
-                @* Campo: Ubicación en Bodega *@
                 <div class="col-md-9 mb-3">
                     <label class="form-label fw-bold">Ubicación en Bodega</label>
                     <input asp-for="Ubicación" class="form-control" placeholder="Ej: Estante A-12 / Fila 3" />
@@ -74,7 +70,6 @@
             </div>
 
             <div class="row">
-                @* Campo: Precio *@
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Precio Unitario</label>
                     <div class="input-group">
@@ -84,7 +79,6 @@
                     <span asp-validation-for="Precio" class="text-danger small"></span>
                 </div>
 
-                @* Campo: Stock *@
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Stock Inicial</label>
                     <input asp-for="Stock" type="number" class="form-control" required />

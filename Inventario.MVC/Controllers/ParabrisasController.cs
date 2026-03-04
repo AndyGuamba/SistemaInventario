@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using System.Text;
 using Inventario.Modelos.Entidades;
+using Microsoft.AspNetCore.Http;
 
 namespace Inventario.MVC.Controllers
 {
@@ -12,7 +12,6 @@ namespace Inventario.MVC.Controllers
 
         public ParabrisasController(IHttpClientFactory httpClientFactory)
         {
-            // Conexión con la API configurada en Program.cs
             _httpClient = httpClientFactory.CreateClient("InventarioApi");
         }
 
@@ -40,12 +39,11 @@ namespace Inventario.MVC.Controllers
         }
 
         // GET: Vista para Agregar
-        public async Task<IActionResult> Crear()
+        public IActionResult Crear()
         {
             if (!EsAdministrador()) return RedirectToAction("Index", "Acceso");
 
-            // CORREGIDO: Usamos el nombre consistente
-            await CargarMarcasEnViewBag();
+            // LIMPIEZA: Ya no necesitamos cargar marcas aquí
             return View();
         }
 
@@ -57,15 +55,12 @@ namespace Inventario.MVC.Controllers
 
             if (!ModelState.IsValid)
             {
-                await CargarMarcasEnViewBag();
                 return View(nuevoParabrisa);
             }
 
-            // Serializamos el objeto Parabrisa (singular como tu modelo)
             var json = JsonConvert.SerializeObject(nuevoParabrisa);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            // Enviamos a la API
             var response = await _httpClient.PostAsync("api/parabrisas", content);
 
             if (response.IsSuccessStatusCode)
@@ -75,11 +70,10 @@ namespace Inventario.MVC.Controllers
             }
 
             ViewBag.Error = "No se pudo guardar el producto en la API.";
-            await CargarMarcasEnViewBag();
             return View(nuevoParabrisa);
         }
 
-        // GET: Vista para Editar (Permite rebajar stock)
+        // GET: Vista para Editar
         public async Task<IActionResult> Editar(int id)
         {
             if (!EsAdministrador()) return RedirectToAction("Index", "Acceso");
@@ -89,18 +83,17 @@ namespace Inventario.MVC.Controllers
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var parabrisa = JsonConvert.DeserializeObject<Parabrisa>(content);
-                await CargarMarcas();
                 return View(parabrisa);
             }
             return RedirectToAction(nameof(Index));
         }
+
         // =======================================================
         // GENERAR REPORTES: Descargar o Enviar por Correo
         // =======================================================
         [HttpGet]
         public async Task<IActionResult> ExportarPdf(bool enviarCorreo)
         {
-            // 1. Verificamos quién es el usuario logueado para saber a qué correo enviar
             var cedula = HttpContext.Session.GetString("UsuarioCedula");
             if (string.IsNullOrEmpty(cedula))
             {
@@ -111,14 +104,11 @@ namespace Inventario.MVC.Controllers
             {
                 if (!enviarCorreo)
                 {
-                    // --- CASO A: DESCARGAR EL PDF ---
-                    // Llamamos a la ruta GET de la API
                     var response = await _httpClient.GetAsync("api/reportes/descargar");
 
                     if (response.IsSuccessStatusCode)
                     {
                         var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                        // Devolvemos el archivo directamente al navegador para que inicie la descarga
                         return File(fileBytes, "application/pdf", "Reporte_Inventario.pdf");
                     }
                     else
@@ -129,8 +119,6 @@ namespace Inventario.MVC.Controllers
                 }
                 else
                 {
-                    // --- CASO B: ENVIAR POR CORREO ---
-                    // Llamamos a la ruta POST de la API pasando la cédula en la URL
                     var response = await _httpClient.PostAsync($"api/reportes/enviar/{cedula}", null);
 
                     if (response.IsSuccessStatusCode)
@@ -139,11 +127,10 @@ namespace Inventario.MVC.Controllers
                     }
                     else
                     {
-                        // Si falla, leemos el porqué (muy útil para saber si la clave del correo está mal)
                         var errorMsg = await response.Content.ReadAsStringAsync();
                         TempData["Error"] = $"Hubo un problema al enviar el correo: {errorMsg}";
                     }
-                    return RedirectToAction("Index"); // Volvemos a la pantalla donde estábamos
+                    return RedirectToAction("Index");
                 }
             }
             catch (Exception ex)
@@ -163,7 +150,6 @@ namespace Inventario.MVC.Controllers
 
             if (response.IsSuccessStatusCode) return RedirectToAction(nameof(Index));
 
-            await CargarMarcas();
             return View(parabrisa);
         }
 
@@ -175,40 +161,5 @@ namespace Inventario.MVC.Controllers
             await _httpClient.DeleteAsync($"api/Parabrisas/{id}");
             return RedirectToAction(nameof(Index));
         }
-
-        // Método auxiliar para cargar el listado de marcas en los formularios
-        private async Task CargarMarcas()
-        {
-            var response = await _httpClient.GetAsync("api/Marcas");
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var marcas = JsonConvert.DeserializeObject<IEnumerable<Marca>>(content);
-                ViewBag.Marcas = new SelectList(marcas, "Id", "MarcaVehiculo");
-            }
-        }
-        private async Task CargarMarcasEnViewBag()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync("api/Marcas");
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var marcas = JsonConvert.DeserializeObject<List<Marca>>(content);
-                    // Si la lista es nula, inicializamos una vacía para evitar el crash
-                    ViewBag.Marcas = marcas ?? new List<Marca>();
-                }
-                else
-                {
-                    ViewBag.Marcas = new List<Marca>();
-                }
-            }
-            catch (Exception)
-            {
-                ViewBag.Marcas = new List<Marca>();
-            }
-        }
     }
-
 }

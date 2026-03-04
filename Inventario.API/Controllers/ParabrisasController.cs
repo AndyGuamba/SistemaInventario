@@ -1,20 +1,15 @@
 ﻿using Inventario.API.Data;
 using Inventario.Modelos.Entidades;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Inventario.API.Controllers
 {
-    [Route("api/[controller]")] // Define la URL como /api/Parabrisas
-    [ApiController] // Habilita comportamientos específicos de API y visibilidad en Swagger
+    [Route("api/[controller]")]
+    [ApiController]
     public class ParabrisasController : ControllerBase
     {
         private readonly InventarioApiContext _context;
@@ -28,16 +23,16 @@ namespace Inventario.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Parabrisa>>> GetParabrisas()
         {
-            // Incluimos la Marca para que el JSON devuelva el nombre de la marca y no solo el ID
-            return await _context.Parabrisas.Include(p => p.Marca).ToListAsync();
+            // LIMPIEZA: Quitamos el .Include() porque Marca ya es un string normal
+            return await _context.Parabrisas.ToListAsync();
         }
 
         // GET: api/Parabrisas/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Parabrisa>> GetParabrisa(int id)
         {
-            var parabrisa = await _context.Parabrisas.Include(p => p.Marca)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            // LIMPIEZA: Quitamos el .Include()
+            var parabrisa = await _context.Parabrisas.FirstOrDefaultAsync(p => p.Id == id);
 
             if (parabrisa == null) return NotFound();
 
