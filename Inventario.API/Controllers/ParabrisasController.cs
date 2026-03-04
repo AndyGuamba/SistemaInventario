@@ -23,7 +23,6 @@ namespace Inventario.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Parabrisa>>> GetParabrisas()
         {
-            // LIMPIEZA: Quitamos el .Include() porque Marca ya es un string normal
             return await _context.Parabrisas.ToListAsync();
         }
 
@@ -31,7 +30,6 @@ namespace Inventario.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Parabrisa>> GetParabrisa(int id)
         {
-            // LIMPIEZA: Quitamos el .Include()
             var parabrisa = await _context.Parabrisas.FirstOrDefaultAsync(p => p.Id == id);
 
             if (parabrisa == null) return NotFound();
@@ -39,10 +37,16 @@ namespace Inventario.API.Controllers
             return parabrisa;
         }
 
-        // POST: api/Parabrisas
+        // ====================================================================
+        // POST: api/Parabrisas (AQUÍ ESTÁ LA TRAMPA AUTOMÁTICA)
+        // ====================================================================
         [HttpPost]
         public async Task<ActionResult<Parabrisa>> PostParabrisa(Parabrisa parabrisa)
         {
+            // 🔴 TRUCO PRO: Esta línea hace exactamente lo mismo que el punto rojo.
+            // Va a pausar el Visual Studio apenas el MVC intente guardar algo.
+            System.Diagnostics.Debugger.Break();
+
             _context.Parabrisas.Add(parabrisa);
             await _context.SaveChangesAsync();
 
