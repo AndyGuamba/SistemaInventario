@@ -1,43 +1,67 @@
-﻿<table class="table">
-    <thead>
-        <tr>
-            <th>Marca</th>
-            <th>Modelo</th>
-            <th>Stock</th>
-            @if (Context.Session.GetInt32("UsuarioRol") == 1)
-            {
-                <th>Acciones</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+﻿@model IEnumerable<Inventario.Modelos.Entidades.Parabrisa>
+@{
+    ViewData["Title"] = "Inventario de Parabrisas";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary"><i class="bi bi-list-ul"></i> Lista de Productos</h2>
+        @if (Context.Session.GetInt32("UsuarioRol") == 1)
         {
-            <tr>
-                <td>@item.Marca?.MarcaVehiculo</td>
-                <td>@item.Modelo</td>
-                <td>
-                    @* Resaltado de stock bajo *@
-                    <span class="@(item.Stock < 5 ? "text-danger fw-bold" : "")">
-                        @item.Stock unidades
-                    </span>
-                </td>
-                @if (Context.Session.GetInt32("UsuarioRol") == 1)
-                {
-                    <td>
-                        @* Botón para editar/rebajar stock *@
-                        <a asp-action="Editar" asp-route-id="@item.Id" class="btn btn-warning btn-sm">
-                            <i class="bi bi-pencil"></i> Editar
-                        </a>
-                        @* Botón para eliminar *@
-                        <a asp-action="Eliminar" asp-route-id="@item.Id"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('¿Seguro que desea eliminar este parabrisas?');">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </td>
-                }
-            </tr>
+            <a asp-action="Crear" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Nuevo Producto
+            </a>
         }
-    </tbody>
-</table>
+    </div>
+
+    <div class="card shadow">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Año</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        @if (Context.Session.GetInt32("UsuarioRol") == 1)
+                        {
+                            <th class="text-center">Acciones</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-secondary">@item.Tipo</td>
+                            <td>@item.Marca?.MarcaVehiculo</td>
+                            <td>@item.Modelo</td>
+                            <td>@item.Anio</td>
+                            <td>@item.Precio.ToString("C2")</td>
+                            <td>
+                                <span class="badge @(item.Stock < 5 ? "bg-danger" : "bg-success")">
+                                    @item.Stock unidades
+                                </span>
+                            </td>
+                            @if (Context.Session.GetInt32("UsuarioRol") == 1)
+                            {
+                                <td class="text-center">
+                                    <a asp-action="Editar" asp-route-id="@item.Id" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Eliminar" asp-route-id="@item.Id"
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirm('¿Seguro que desea eliminar este producto?');">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
