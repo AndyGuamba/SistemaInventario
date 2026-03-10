@@ -1,7 +1,8 @@
-﻿using QuestPDF.Fluent;
+﻿using Inventario.Modelos.Entidades;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using Inventario.Modelos.Entidades;
 using System;
 using System.Collections.Generic;
 
@@ -84,9 +85,9 @@ namespace Inventario.API.Reportes
                     foreach (var item in listaParabrisas)
                     {
                         table.Cell().Element(BlockStyle).Text(item.Id.ToString());
-                        table.Cell().Element(BlockStyle).Text(item.Modelo ?? "N/A");
-                        table.Cell().Element(BlockStyle).Text(item.Marca ?? "N/A");
                         table.Cell().Element(BlockStyle).Text(item.Tipo ?? "N/A");
+                        table.Cell().Element(BlockStyle).Text(item.Marca ?? "N/A");
+                        table.Cell().Element(BlockStyle).Text(item.Modelo ?? "N/A");
 
                         // Imprimimos la ubicación, si está vacía ponemos "Sin asignar"
                         table.Cell().Element(BlockStyle).Text(item.Ubicación ?? "Sin asignar");
