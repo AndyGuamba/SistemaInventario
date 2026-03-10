@@ -68,9 +68,9 @@ namespace Inventario.API.Reportes
                     table.Header(header =>
                     {
                         header.Cell().Element(CellStyle).Text("ID").SemiBold().FontColor(Colors.White);
+                        header.Cell().Element(CellStyle).Text("Tipo").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Modelo").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Marca").SemiBold().FontColor(Colors.White);
-                        header.Cell().Element(CellStyle).Text("Tipo").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Ubicación").SemiBold().FontColor(Colors.White); // <-- AQUÍ
                         header.Cell().Element(CellStyle).Text("Stock").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Precio").SemiBold().FontColor(Colors.White);
