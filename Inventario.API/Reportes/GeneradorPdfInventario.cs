@@ -15,10 +15,11 @@ namespace Inventario.API.Reportes
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A4);
+                    // Orientación horizontal (Landscape) para que entren bien las 7 columnas
+                    page.Size(PageSizes.A4.Landscape());
                     page.Margin(2, Unit.Centimetre);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(11));
+                    page.DefaultTextStyle(x => x.FontSize(10)); // Letra un pelín más pequeña para que encaje perfecto
 
                     page.Header().Element(ComposeHeader);
                     page.Content().Element(x => ComposeContent(x, listaParabrisas));
@@ -35,7 +36,7 @@ namespace Inventario.API.Reportes
             {
                 row.RelativeItem().Column(column =>
                 {
-                    column.Item().Text("Reporte de Inventario").FontSize(24).SemiBold().FontColor(Colors.Blue.Darken2);
+                    column.Item().Text("Reporte de Inventario Físico").FontSize(24).SemiBold().FontColor(Colors.Blue.Darken2);
                     column.Item().Text($"Fecha de emisión: {DateTime.Now:dd/MM/yyyy HH:mm}");
                     column.Item().Text("Sistema de Gestión de Parabrisas").FontSize(10).FontColor(Colors.Grey.Medium);
                 });
@@ -50,22 +51,26 @@ namespace Inventario.API.Reportes
 
                 column.Item().Table(table =>
                 {
+                    // 1. DEFINIMOS 7 COLUMNAS AHORA
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(40);  // ID
+                        columns.ConstantColumn(30);  // ID
                         columns.RelativeColumn(3);   // Modelo
                         columns.RelativeColumn(2);   // Marca
                         columns.RelativeColumn(2);   // Tipo
+                        columns.RelativeColumn(2);   // Ubicación (¡NUEVA COLUMNA!)
                         columns.RelativeColumn(1);   // Stock
                         columns.RelativeColumn(2);   // Precio
                     });
 
+                    // 2. AGREGAMOS EL TÍTULO A LA CABECERA
                     table.Header(header =>
                     {
                         header.Cell().Element(CellStyle).Text("ID").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Modelo").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Marca").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Tipo").SemiBold().FontColor(Colors.White);
+                        header.Cell().Element(CellStyle).Text("Ubicación").SemiBold().FontColor(Colors.White); // <-- AQUÍ
                         header.Cell().Element(CellStyle).Text("Stock").SemiBold().FontColor(Colors.White);
                         header.Cell().Element(CellStyle).Text("Precio").SemiBold().FontColor(Colors.White);
 
@@ -75,15 +80,17 @@ namespace Inventario.API.Reportes
                         }
                     });
 
+                    // 3. LLENAMOS LOS DATOS DE LA UBICACIÓN
                     foreach (var item in listaParabrisas)
                     {
                         table.Cell().Element(BlockStyle).Text(item.Id.ToString());
                         table.Cell().Element(BlockStyle).Text(item.Modelo ?? "N/A");
-
-                        // CORRECCIÓN: Ahora es solo item.Marca
                         table.Cell().Element(BlockStyle).Text(item.Marca ?? "N/A");
-
                         table.Cell().Element(BlockStyle).Text(item.Tipo ?? "N/A");
+
+                        // Imprimimos la ubicación, si está vacía ponemos "Sin asignar"
+                        table.Cell().Element(BlockStyle).Text(item.Ubicación ?? "Sin asignar");
+
                         table.Cell().Element(BlockStyle).Text(item.Stock.ToString());
                         table.Cell().Element(BlockStyle).Text($"${item.Precio:F2}");
 
